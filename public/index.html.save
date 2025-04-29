@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>New Products • Order via WhatsApp</title>
+
+  <!-- Tailwind CSS (for demo) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome icons -->
+  <script defer src="https://kit.fontawesome.com/a2e0e9e1b7.js" crossorigin="anonymous"></script>
+
+  <style>
+    /* ── Share progress bar ───────────────────────────────────────────── */
+    .share-track { background: #e5e7eb; }
+    .share-fill  { background: linear-gradient(90deg,#e5e7eb 0%,#059669 100%); }
+
+    /* ── Full-screen viewer chevrons ──────────────────────────────────── */
+    .viewer-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(0,0,0,0.5);
+      border: none;
+      padding: 0.5rem;
+      border-radius: 9999px;
+      cursor: pointer;
+    }
+    .viewer-btn.left  { left: 1rem; }
+    .viewer-btn.right { right: 1rem; }
+    .viewer-btn i     { font-size: 1.5rem; color: white; }
+
+    /* ── Breathing glow for share buttons ─────────────────────────────── */
+    @keyframes breathe {
+      0%,100% { box-shadow: 0 0 4px rgba(255,255,255,0.4); }
+      50%     { box-shadow: 0 0 12px rgba(255,255,255,0.8); }
+    }
+    #shareBtns button {
+      position: relative;
+      animation: breathe 3s ease-in-out infinite;
+    }
+
+    /* ── Quick-message panel & rotating, pulsing lights ──────────────── */
+    @keyframes rotate-lights { to { transform: rotate(360deg); } }
+    @keyframes blink-lights  {
+      0%,50%,100% { opacity: 1; }
+      25%,75%     { opacity: 0.5; }
+    }
+
+    #messagePanel {
+      position: relative;
+      z-index: 1;
+      width: 70%;
+      margin: 2rem auto;
+      padding: 1.5rem;
+      border-radius: 1rem;
+      background: transparent;
+    }
+    #messagePanel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: #fff;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      z-index: -2;
+    }
+    #messagePanel::after {
+      content: "";
+      position: absolute;
+      top: -6px; left: -6px; right: -6px; bottom: -6px;
+      border-radius: inherit;
+      background:
+        radial-gradient(circle,#A8E6CF 6px,transparent 6px),
+        radial-gradient(circle,#FFD3B6 6px,transparent 6px),
+        radial-gradient(circle,#FF8C94 6px,transparent 6px),
+        radial-gradient(circle,#E1BEE7 6px,transparent 6px),
+        radial-gradient(circle,#AEC6CF 6px,transparent 6px),
+        radial-gradient(circle,#A8E6CF 6px,transparent 6px),
+        radial-gradient(circle,#FFD3B6 6px,transparent 6px),
+        radial-gradient(circle,#FF8C94 6px,transparent 6px);
+      background-position:
+        0%   0%,   50%   0%,   100%  0%,
+        100% 50%, 100% 100%, 50% 100%,
+        0%  100%,  0%   50%;
+      background-repeat: no-repeat;
+      transform-origin: center;
+      pointer-events: none;
+      animation:
+        rotate-lights 15s linear infinite,
+        blink-lights  3s ease-in-out infinite;
+      z-index: -1;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen bg-gradient-to-br from-emerald-200 to-cyan-200">
+
+  <!-- Top bar -->
+  <header class="bg-white/80 backdrop-blur sticky top-0 z-40 flex items-center justify-between px-4 py-2 shadow">
+    <h1 class="text-lg font-bold flex items-center gap-2">
+      <i class="fa-solid fa-cart-shopping text-emerald-600"></i>
+      <span id="userBadge" class="ml-2 text-lg font-semibold hidden">
+        <i class="fa-solid fa-user"></i>
+        <span id="userPhone"></span>
+      </span>
+    </h1>
+    <div class="flex items-center gap-4">
+      <button id="waShareBtn"
+              class="px-4 py-1 rounded bg-emerald-600 text-white hover:bg-emerald-700 flex items-center gap-1">
+        <i class="fa-brands fa-whatsapp"></i> Share App
+      </button>
+      <button id="adminUploadBtn" class="hidden text-sm text-blue-600 hover:underline">Upload Photo</button>
+      <input id="adminFileInput" type="file" accept="image/*" class="hidden" />
+      <span id="uploadProgress" class="text-sm text-gray-700 hidden">Uploading: 0%</span>
+      <button id="signOut" class="hidden text-sm text-red-500 hover:underline">Sign out</button>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4">
+
+    <!-- share progress -->
+    <section class="my-6">
+      <div class="flex items-center justify-between mb-1">
+        <span class="text-sm font-medium">App shares</span>
+        <span id="shareCount" class="text-sm font-semibold">0 / 50</span>
+      </div>
+      <div class="h-4 rounded share-track">
+        <div id="shareFill" class="h-full rounded share-fill w-0"></div>
+      </div>
+    </section>
+
+    <!-- share buttons -->
+    <section id="shareBtns" class="flex flex-wrap gap-3 mb-8">
+      <!-- we’ll hide the old buttons and use our new one -->
+    </section>
+
+    <!-- products grid -->
+    <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+      <i class="fa-solid fa-box-open text-emerald-600"></i> New Products
+    </h2>
+    <div id="grid" class="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5">
+      <!-- cards injected here -->
+    </div>
+
+    <!-- quick-message panel -->
+    <section id="messagePanel">
+      <h3 class="text-lg font-bold mb-3 flex items-center gap-2">
+        <i class="fa-regular fa-comment-dots text-emerald-600"></i> Send quick message
+      </h3>
+      <textarea id="quickMsg" rows="4" class="block w-full rounded-lg border-gray-300 shadow-sm focus:ring-emerald-500 focus:border-emerald-500 p-3">
+ Please Remember To Send My Free Data</textarea>
+      <p id="monthlyNotice" class="mt-2 mb-4 text-xs uppercase font-semibold tracking-wide text-indigo-600">
+        Note: This message may only be sent on the 1st day of every month.
+      </p>
+      <button id="sendQuick" class="w-full py-3 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700">
+        <i class="fa-brands fa-whatsapp"></i> Send via WhatsApp
+      </button>
+      <p id="limitNotice" class="mt-2 text-sm text-gray-600 italic hidden">
+        You may only send one quick message per day. Thank you for understanding!
+      </p>
+    </section>
+
+  </main>
+
+  <!-- INVITE MODAL -->
+  <div id="inviteModal" class="fixed inset-0 bg-black/50 flex items-center justify-center hidden z-50">
+    <div class="bg-white p-6 rounded-lg w-80">
+      <h2 class="text-lg font-semibold mb-4">Who are you sharing to?</h2>
+      <input id="recipientInput" type="tel" placeholder="+1234567890"
+             class="w-full p-2 border rounded mb-4"/>
+      <div class="flex justify-end gap-2">
+        <button id="cancelInvite" class="px-4 py-2">Cancel</button>
+        <button id="confirmInvite" class="px-4 py-2 bg-emerald-600 text-white rounded">Share</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- auth modal (unchanged) -->
+  <div id="authGate" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 hidden">
+    <!-- ...keep your existing auth modal here... -->
+  </div>
+
+  <!-- Firebase SDKs & app script -->
+  <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-storage-compat.js"></script>
+  <script>
+    // ── Firebase init ─────────────────────────────────────────────────────
+    firebase.initializeApp({
+      apiKey:        "YOUR_API_KEY",
+      authDomain:    "YOUR_PROJECT.firebaseapp.com",
+      projectId:     "YOUR_PROJECT",
+      storageBucket: "YOUR_PROJECT.appspot.com",
+      appId:         "YOUR_APP_ID"
+    });
+    const auth    = firebase.auth();
+    const db      = firebase.firestore();
+    const storage = firebase.storage();
+
+    // ── Custom share logic ───────────────────────────────────────────────
+    const STORE_NUM   = "4915215688608";
+    const SHARE_LIMIT = 50;
+
+    // Render the original share counter
+    let shareCount = JSON.parse(localStorage.shareCount || "[]");
+    function renderShare() {
+      const val = Math.min(shareCount.length, SHARE_LIMIT);
+      document.getElementById("shareCount").textContent = `${val} / ${SHARE_LIMIT}`;
+      document.getElementById("shareFill").style.width = (val/SHARE_LIMIT*100)+"%";
+    }
+    renderShare();
+
+    // Override old share button to open our modal
+    document.getElementById("waShareBtn").onclick = e => {
+      e.preventDefault();
+      document.getElementById("inviteModal").classList.remove("hidden");
+    };
+
+    // Cancel invite modal
+    document.getElementById("cancelInvite").onclick = () => {
+      document.getElementById("inviteModal").classList.add("hidden");
+    };
+
+    // Confirm invite
+    document.getElementById("confirmInvite").onclick = async () => {
+      const ref = document.getElementById("recipientInput").value.trim();
+      if (!/^\+\d{6,15}$/.test(ref)) {
+        return alert("Enter in format +1234567890");
+      }
+      // 1) record to our server
+      await fetch("/create-invite", {
+        method: "POST",
+        headers: { "Content-Type":"application/json" },
+        body: JSON.stringify({ sharer: localStorage.phone||"ANON", ref })
+      });
+      document.getElementById("inviteModal").classList.add("hidden");
+
+      // 2) open WhatsApp
+      window.open(
+        `https://wa.me/?text=${encodeURIComponent("https://your-domain.com/invite?code="+ref)}`,
+        "_blank"
+      );
+    };
+
+    // ── Firestore listener for used invites ──────────────────────────────
+    const sharer = localStorage.phone || "ANON";
+    db.collection("invites")
+      .where("sharer","==",sharer)
+      .where("used","==",true)
+      .onSnapshot(snap => {
+        shareCount = Array(snap.size).fill(null);
+        renderShare();
+      });
+
+    // ── (keep all your other original scripts below unchanged) ─────────────
+  </script>
+</body>
+</html>
+

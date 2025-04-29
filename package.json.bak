@@ -1,0 +1,12 @@
+cat > functions/package.json <<'EOF'
+{
+  "name": "functions",
+  "version": "1.0.0",
+  "description": "Cloud Functions for WhatsApp-Sender demo",
+  "engines": { "node": "18" },
+  "dependencies": {
+    "firebase-admin": "11.10.1",
+    "firebase-functions": "3.24.1"
+  }
+}
+EOF

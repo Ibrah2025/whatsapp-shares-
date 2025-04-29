@@ -1,0 +1,19 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "invites",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "sharer",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "normalizedRef",
+          "order": "ASCENDING"
+        }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

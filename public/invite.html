@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Confirm Invite</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="flex items-center justify-center min-h-screen bg-gray-100">
+  <form action="/verify-invite" method="POST" class="bg-white p-6 rounded shadow w-80">
+    <h1 class="text-xl font-bold mb-4">Confirm your number</h1>
+    <label class="block mb-1">Invite code</label>
+    <input id="codeField" name="code" readonly class="w-full p-2 mb-4 border rounded bg-gray-100"/>
+    <label class="block mb-1">Your phone</label>
+    <input name="phone" type="tel" required placeholder="+1234567890" class="w-full p-2 mb-4 border rounded"/>
+    <button type="submit" class="w-full py-2 bg-emerald-600 text-white rounded">Confirm</button>
+  </form>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    // ── Firebase init ─────────────────────────────────────────────────────
+    firebase.initializeApp({
+      apiKey:        "AIzaSyD4MRqr2ZtobJRjmiyFDjEX_rQC0uq5kXE",
+      authDomain:    "whatsapp-sender-1745259132.firebaseapp.com",
+      projectId:     "whatsapp-sender-1745259132",
+      storageBucket: "whatsapp-sender-1745259132.firebasestorage.app",
+      messagingSenderId:"416889662149",
+      appId:         "1:416889662149:web:62ac6ac4b12a4779b61eac"
+    });
+    const db = firebase.firestore();
+
+    // fill invite code from ?code=
+    document.getElementById('codeField').value =
+      new URLSearchParams(window.location.search).get('code') || '';
+  </script>
+</body>
+</html>
