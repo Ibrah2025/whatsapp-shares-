@@ -1,345 +1,281 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>New Products • Order via WhatsApp</title>
-
-  <!-- Tailwind (CDN) -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Font-Awesome -->
   <script defer src="https://kit.fontawesome.com/a2e0e9e1b7.js" crossorigin="anonymous"></script>
-
   <style>
-    /* ───────── layout helpers ───────── */
-    .share-track{background:#e5e7eb}
-    .share-fill{background:linear-gradient(90deg,#e5e7eb 0%,#059669 100%)}
-    .viewer-btn{
-      position:absolute;top:50%;transform:translateY(-50%);
-      background:rgba(0,0,0,.5);border:none;padding:.5rem;border-radius:9999px;cursor:pointer}
-    .viewer-btn.left{left:1rem}.viewer-btn.right{right:1rem}
-    .viewer-btn i{font-size:1.5rem;color:#fff}
-    @keyframes breathe{0%,100%{box-shadow:0 0 4px rgba(255,255,255,.4)}50%{box-shadow:0 0 12px rgba(255,255,255,.8)}}
-    #shareBtns button{animation:breathe 3s ease-in-out infinite}
-    @keyframes rotate-lights{to{transform:rotate(360deg)}}
-    @keyframes blink-lights{0%,50%,100%{opacity:1}25%,75%{opacity:.5}}
-    #messagePanel{position:relative;z-index:1;width:70%;margin:2rem auto;padding:1.5rem;border-radius:1rem}
-    #messagePanel::before{content:"";position:absolute;inset:0;border-radius:inherit;background:#fff;box-shadow:0 4px 12px rgba(0,0,0,.08);z-index:-2}
-    #messagePanel::after{
-      content:"";position:absolute;top:-6px;left:-6px;right:-6px;bottom:-6px;border-radius:inherit;
-      background:
-        radial-gradient(circle,#A8E6CF 6px,transparent 6px),
-        radial-gradient(circle,#FFD3B6 6px,transparent 6px),
-        radial-gradient(circle,#FF8C94 6px,transparent 6px),
-        radial-gradient(circle,#E1BEE7 6px,transparent 6px),
-        radial-gradient(circle,#AEC6CF 6px,transparent 6px),
-        radial-gradient(circle,#A8E6CF 6px,transparent 6px),
-        radial-gradient(circle,#FFD3B6 6px,transparent 6px),
-        radial-gradient(circle,#FF8C94 6px,transparent 6px);
-      background-position:0% 0%,50% 0%,100% 0%,100% 50%,100% 100%,50% 100%,0% 100%,0% 50%;
-      background-repeat:no-repeat;
-      transform-origin:center;
-      animation:rotate-lights 15s linear infinite,blink-lights 3s ease-in-out infinite;z-index:-1}
+    .share-track { background: #e5e7eb }
+    .share-fill  { background: linear-gradient(90deg,#e5e7eb 0%,#059669 100%) }
+    .viewer-btn { position: absolute; top:50%; transform:translateY(-50%); background:rgba(0,0,0,.5); border:none; padding:.5rem; border-radius:9999px; cursor:pointer }
+    .viewer-btn.left { left:1rem }
+    .viewer-btn.right{ right:1rem }
+    .viewer-btn i { font-size:1.5rem; color:#fff }
   </style>
 </head>
+<body class="min-h-screen bg-gradient-to-br from-emerald-200 to-cyan-200 flex flex-col">
 
-<body class="min-h-screen bg-gradient-to-br from-emerald-200 to-cyan-200">
-
-  <!-- bait element so Tailwind-CDN generates bg-amber-500 -->
-  <div class="hidden bg-amber-500"></div>
-
-  <!-- ───────── NAV BAR ───────── -->
+  <!-- HEADER -->
   <header class="bg-white/80 backdrop-blur sticky top-0 z-40 flex items-center justify-between px-4 py-2 shadow">
     <h1 class="text-lg font-bold flex items-center gap-2">
       <i class="fa-solid fa-cart-shopping text-emerald-600"></i>
       <span id="userBadge" class="ml-2 text-lg font-semibold hidden">
-        <i class="fa-solid fa-user"></i> <span id="userPhone"></span>
+        <i class="fa-solid fa-user"></i>
+        <span id="userPhone"></span>
       </span>
     </h1>
-
     <div class="flex items-center gap-4">
       <button id="adminUploadBtn" class="hidden text-sm text-blue-600 hover:underline">Upload Photo</button>
-      <input  id="adminFileInput"  type="file" accept="image/*" class="hidden">
-      <span   id="uploadProgress"  class="text-sm text-gray-700 hidden">Uploading: 0%</span>
-      <button id="signOut"         class="hidden text-sm text-red-500 hover:underline">Sign out</button>
+      <input  id="adminFileInput" type="file" accept="image/*" class="hidden" />
+      <span id="uploadProgress" class="text-sm text-gray-700 hidden">Uploading: 0%</span>
+      <button id="signOut" class="hidden text-sm text-red-500 hover:underline">Sign out</button>
     </div>
   </header>
 
-  <main class="max-w-6xl mx-auto px-4">
-    <!-- ───────── SHARE COUNTERS ───────── -->
-    <section class="my-6">
-      <div class="flex items-center justify-between mb-1">
-        <span class="text-sm font-medium">App shares</span>
-        <span id="shareCount" class="text-sm font-semibold">0 / 40</span>
+  <!-- MAIN -->
+  <main class="flex-1 max-w-4xl mx-auto px-4 py-8">
+    <!-- COUNTERS -->
+    <section class="mb-8">
+      <div class="mb-2 font-semibold">App shares</div>
+      <div class="w-full h-4 rounded overflow-hidden share-track">
+        <div id="sharesFill" class="h-full share-fill" style="width:0%"></div>
       </div>
-      <div class="h-4 rounded share-track"><div id="shareFill" class="h-full rounded share-fill w-0"></div></div>
+      <div id="sharesText" class="text-right text-sm mt-1">0 / 40</div>
 
-      <div class="flex items-center justify-between mt-4 mb-1">
-        <span class="text-sm font-medium">Free Data</span>
-        <span id="freeDataCount" class="text-sm font-semibold">0 MB</span>
+      <div class="mt-4 mb-2 font-semibold">Free Data</div>
+      <div class="w-full h-4 rounded overflow-hidden share-track">
+        <div id="dataFill" class="h-full share-fill" style="width:0%"></div>
       </div>
-      <div class="h-4 rounded share-track"><div id="freeDataFill" class="h-full rounded share-fill w-0"></div></div>
+      <div id="dataText" class="text-right text-sm mt-1">0 MB</div>
     </section>
 
-    <!-- ───────── SHARE BUTTONS ───────── -->
-    <section id="shareBtns" class="flex flex-wrap gap-3 mb-8">
-      <button data-chan="whatsapp"  class="flex-1 sm:flex-none px-3 py-2 rounded bg-green-600 text-white hover:bg-green-700 flex items-center gap-2">
-        <i class="fa-brands fa-whatsapp"></i> WhatsApp
-      </button>
-      <button data-chan="facebook"  class="flex-1 sm:flex-none px-3 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 flex items-center gap-2">
-        <i class="fa-brands fa-facebook-f"></i> Facebook
-      </button>
-      <button data-chan="instagram" class="flex-1 sm:flex-none px-3 py-2 rounded bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 text-white hover:opacity-90 flex items-center gap-2">
-        <i class="fa-brands fa-instagram"></i> Instagram
-      </button>
+    <!-- SHARE BUTTONS -->
+    <section class="flex gap-4 mb-8">
+      <button id="btnWhatsApp" class="px-6 py-3 bg-green-600 text-white rounded">WhatsApp</button>
+      <button id="btnFacebook" class="px-6 py-3 bg-blue-600 text-white rounded">Facebook</button>
+      <button id="btnInstagram" class="px-6 py-3 bg-gradient-to-r from-pink-500 via-yellow-400 to-red-500 text-white rounded">Instagram</button>
     </section>
 
-    <!-- ───────── PRODUCTS GRID ───────── -->
-    <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
-      <i class="fa-solid fa-box-open text-emerald-600"></i> New Products
-    </h2>
-    <div id="grid" class="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5"></div>
-
-    <!-- ───────── QUICK MESSAGE PANEL ───────── -->
-    <section id="messagePanel">
-      <h3 class="text-lg font-bold mb-3 flex items-center gap-2">
-        <i class="fa-regular fa-comment-dots text-emerald-600"></i> Send quick message
-      </h3>
-      <textarea id="quickMsg" rows="4" class="block w-full rounded-lg border-gray-300 shadow-sm focus:ring-emerald-500 focus:border-emerald-500 p-3">Please Remember To Send My Free Data</textarea>
-      <p id="monthlyNotice" class="mt-2 mb-4 text-xs uppercase font-semibold tracking-wide text-indigo-600">
-        Note: This message may only be sent on the 1st day of every month.
-      </p>
-      <button id="sendQuick" class="w-full py-3 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700">
-        <i class="fa-brands fa-whatsapp"></i> Send via WhatsApp
-      </button>
-      <p id="limitNotice" class="mt-2 text-sm text-gray-600 italic hidden">
-        You may only send one quick message per day. Thank you for understanding!
-      </p>
+    <!-- NEW PRODUCTS CAROUSEL -->
+    <section>
+      <h2 class="text-2xl font-bold mb-4">New Products</h2>
+      <div id="productViewer" class="relative bg-white p-6 rounded-lg shadow-md min-h-[300px] flex items-center justify-center">
+        <button class="viewer-btn left" id="prevProd"><i class="fa-solid fa-chevron-left"></i></button>
+        <img id="prodImage" src="" alt="product" class="max-h-64 object-contain" />
+        <button class="viewer-btn right" id="nextProd"><i class="fa-solid fa-chevron-right"></i></button>
+      </div>
     </section>
   </main>
 
-  <!-- ───────── INVITE MODAL ───────── -->
+  <!-- INVITE MODAL (unchanged) -->
   <div id="inviteModal" class="fixed inset-0 bg-black/50 flex items-center justify-center hidden z-50">
     <div class="bg-white p-6 rounded-lg w-80">
       <h2 class="text-lg font-semibold mb-4">
-        Enter <span class="font-bold">Mobile&nbsp;Number</span> to share the app with&nbsp;and&nbsp;get&nbsp;Free&nbsp;Data
+        Enter <span class="font-bold">Mobile&nbsp;Number</span> to share the app &amp; get free data
       </h2>
-      <div class="relative w-full mb-4">
-        <input id="recipientInput" type="tel" placeholder="080 / 070 / 090" class="w-full p-2 pr-10 border rounded">
-        <button id="pickContact"  title="Pick from phone book"
-                class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-emerald-600">
+      <div class="relative mb-4">
+        <input id="recipientInput" type="tel" placeholder="080 / 070 / 090" class="w-full p-2 pr-10 border rounded" />
+        <button id="pickContact" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-emerald-600">
           <i class="fa-solid fa-address-book"></i>
         </button>
       </div>
       <div class="flex justify-end gap-2">
-        <button id="cancelInvite"  class="px-4 py-2">Cancel</button>
+        <button id="cancelInvite">Cancel</button>
         <button id="confirmInvite" class="px-4 py-2 bg-emerald-600 text-white rounded">Share</button>
       </div>
     </div>
   </div>
 
-  <!-- ───────── LOGIN MODAL ───────── -->
-  <div id="authGate" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 hidden">
-    <div class="bg-white rounded-2xl p-6 w-full max-w-xs space-y-4">
-      <h2 class="text-xl font-bold text-center">🔒 Log in</h2>
-      <input id="phoneInput" type="tel" placeholder="Phone number" class="w-full rounded-lg border p-2">
-      <input id="pinInput"   type="password" maxlength="6" pattern="\d{6}" placeholder="PIN (6 digits)" class="w-full rounded-lg border p-2">
-      <label class="inline-flex items-center gap-2 text-sm"><input type="checkbox" id="remember" class="rounded"> Remember me</label>
-      <button id="loginBtn" class="w-full py-2 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700">Log in</button>
-      <p id="authError" class="text-center text-sm text-red-600 hidden"></p>
-    </div>
-  </div>
-
-  <!-- Firebase SDKs -->
+  <!-- FIREBASE SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-storage-compat.js"></script>
 
   <script>
-  /* ───────── Firebase init ───────── */
-  firebase.initializeApp({
-    apiKey:"AIzaSyD4MRqr2ZtobJRjmiyFDjEX_rQC0uq5kXE",
-    authDomain:"whatsapp-sender-1745259132.firebaseapp.com",
-    projectId:"whatsapp-sender-1745259132",
-    storageBucket:"whatsapp-sender-1745259132.appspot.com",
-    messagingSenderId:"416889662149",
-    appId:"1:416889662149:web:62ac6ac4b12a4779b61eac"
-  });
-  const auth=firebase.auth(), db=firebase.firestore(), storage=firebase.storage();
-  const BASE="https://whatsapp-sender-1745259132.web.app";
+    // ─── INIT ───────────────────────────────────────────────────────────────
+    firebase.initializeApp({
+      apiKey: "AIzaSyD4MRqr2ZtobJRjmiyFDjEX_rQC0uq5kXE",
+      authDomain: "whatsapp-sender-1745259132.firebaseapp.com",
+      projectId: "whatsapp-sender-1745259132",
+      storageBucket: "whatsapp-sender-1745259132.appspot.com",
+      messagingSenderId: "416889662149",
+      appId: "1:416889662149:web:62ac6ac4b12a4779b61eac"
+    });
+    const auth    = firebase.auth();
+    const db      = firebase.firestore();
+    const storage = firebase.storage();
+    const BASE    = "https://whatsapp-sender-1745259132.web.app";
+    const ADMIN_UID = "cSHfpU8p4UPS7Q1zabWQY7FUeqH2";
 
-  /* ───────── constants ───────── */
-  const STORE_NUM="4915215688608";
-  const SHARE_LIMIT=40, DATA_MB_PER_SHARE=25;
-  const ADMIN_UIDS=["cSHfpU8p4UPS7Q1zabWQY7FUeqH2"];
-  const NG_CORE_MOBILE=/^(?:\+234|0)(?:703|704|706|803|806|810|813|814|816|819|903|906|913|916|701|708|802|808|812|901|902|904|907|912|705|805|807|811|815|905|915|809|817|818|908|909)\d{7}$/;
+    // ─── AUTH UI ───────────────────────────────────────────────────────────
+    const adminBtn    = document.getElementById("adminUploadBtn");
+    const fileInput   = document.getElementById("adminFileInput");
+    const progressElt = document.getElementById("uploadProgress");
+    const signOutBtn  = document.getElementById("signOut");
+    const userBadge   = document.getElementById("userBadge");
+    const userPhoneEl = document.getElementById("userPhone");
 
-  /* ───────── Auth ───────── */
-  loginBtn.onclick=async()=>{
-    const phone=phoneInput.value.trim(), pin=pinInput.value.trim();
-    if(!/^\d{9,15}$/.test(phone)||!/^\d{6}$/.test(pin)){
-      authError.textContent="Enter valid phone + 6-digit PIN.";authError.classList.remove("hidden");return;}
-    if(remember.checked){localStorage.phone=phone;localStorage.pin=pin;}
-    else{localStorage.removeItem("phone");localStorage.removeItem("pin");}
-    try{
-      await auth.signInWithEmailAndPassword(`${phone.replace(/\D/g,"")}@example.phone`,pin);
-    }catch(e){
-      if(e.code==="auth/user-not-found"||e.code==="auth/invalid-credential"){
-        await auth.createUserWithEmailAndPassword(`${phone.replace(/\D/g,"")}@example.phone`,pin);
-      }else{authError.textContent="Error: "+e.message;authError.classList.remove("hidden");}
-    }
-  };
-  auth.onAuthStateChanged(u=>{
-    authGate.classList.toggle("hidden",!!u);
-    userBadge.classList.toggle("hidden",!u);
-    if(u) userPhone.textContent=localStorage.phone||u.email.replace("@example.phone","");
-    adminUploadBtn.classList.toggle("hidden",!(u&&ADMIN_UIDS.includes(u.uid)));
-    signOut.classList.toggle("hidden",!u);
-  });
-  signOut.onclick=()=>auth.signOut();
-
-  /* ───────── counters ───────── */
-  let shareArr=JSON.parse(localStorage.shareCount||"[]");
-  function renderCounters(){
-    const shares=Math.min(shareArr.length,SHARE_LIMIT);
-    shareCount.textContent=`${shares} / ${SHARE_LIMIT}`;
-    shareFill.style.width=(shares/SHARE_LIMIT*100)+"%";
-    const mb=shares*DATA_MB_PER_SHARE;
-    freeDataCount.textContent=mb>=1000?(mb/1000).toFixed(1).replace(/\.0$/,"")+" GB":mb+" MB";
-    freeDataFill.style.width=Math.min(mb/1000,1)*100+"%";
-  }
-  renderCounters();
-
-  /* ───────── share helpers ───────── */
-  function registerShare(){shareArr.push(Date.now());localStorage.shareCount=JSON.stringify(shareArr);renderCounters();}
-  function openSocial(chan){
-    const url=encodeURIComponent(location.href);
-    window.open(chan==="facebook"?`https://www.facebook.com/sharer/sharer.php?u=${url}`
-                              :chan==="instagram"?`https://www.instagram.com/?url=${url}`:"#","_blank");
-    registerShare();
-  }
-
-  /* ───────── invite flow ───────── */
-  function openInviteModal(){if(!auth.currentUser){alert("Log in first!");return;}inviteModal.classList.remove("hidden");}
-  shareBtns.onclick=e=>{const b=e.target.closest("button[data-chan]");if(!b)return;b.dataset.chan==="whatsapp"?openInviteModal():openSocial(b.dataset.chan);};
-  cancelInvite.onclick=()=>inviteModal.classList.add("hidden");
-  pickContact.onclick=async()=>{
-    if(!('contacts'in navigator)||!('select'in navigator.contacts)){alert("Browser can’t open contacts.");return;}
-    try{
-      const [c]=await navigator.contacts.select([{name:'tel',allow:['tel']}],{multiple:false});
-      if(!c||!c.tel?.length)return;
-      let n=c.tel[0].replace(/[\s\-()]/g,""); if(n.startsWith("+234")) n="0"+n.slice(4);
-      recipientInput.value=n;recipientInput.focus();
-    }catch(e){console.error(e);}
-  };
-  confirmInvite.onclick=async()=>{
-    const ref=recipientInput.value.trim();
-    if(!NG_CORE_MOBILE.test(ref)){alert("Enter valid Nigerian mobile (080… or +234803…)");return;}
-    const r=await fetch("/create-invite",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sharer:localStorage.phone||"ANON",ref})});
-    if(!r.ok){alert(await r.text());return;}
-    inviteModal.classList.add("hidden");
-    window.open(`https://wa.me/?text=${encodeURIComponent(BASE+"/invite?code="+encodeURIComponent(ref))}`,"_blank");
-    registerShare();
-  };
-
-  /* ───────── Products grid ───────── */
-  db.collection("Ads").orderBy("ts","desc").limit(10).onSnapshot(snap=>{
-    grid.innerHTML="";
-    snap.forEach(doc=>{
-      const d=doc.data(), arr=d.images||[d.img], main=arr[arr.length-1], status=d.status||"available";
-      const isAdmin=auth.currentUser&&ADMIN_UIDS.includes(auth.currentUser.uid);
-      const badge=status!=="available"
-        ? `<span class="absolute top-2 left-2 rounded text-xs font-semibold px-2 py-0.5 text-white
-                     ${status==="reserved"?"bg-amber-500":"bg-red-600"}">${status.toUpperCase()}</span>`:"";
-      const thumbs=arr.slice(-5).map((u,i)=>`<img src="${u}" class="h-16 w-16 object-cover rounded cursor-pointer" onclick='viewer(${JSON.stringify(arr)},${i})'>`).join("");
-      const adminBtns=isAdmin?`
-        <button data-id="${doc.id}" data-status="${status}" class="toggleStatus w-full py-1 rounded bg-amber-500 text-white text-xs mt-2">
-          ${status==="available"?"Mark Reserved":status==="reserved"?"Mark Sold":"Mark Available"}
-        </button>
-        <button data-id="${doc.id}" class="deleteAd w-full py-1 rounded bg-red-600 text-white text-xs mt-1">Delete Ad</button>`:"";
-
-      grid.insertAdjacentHTML("beforeend",`
-      <div class="bg-white rounded-xl shadow hover:shadow-lg transition flex flex-col overflow-hidden relative">
-        <div class="aspect-square overflow-hidden cursor-pointer" onclick='viewer(${JSON.stringify(arr)},${arr.length-1})'>
-          <img src="${main}" class="w-full h-full object-cover">${badge}
-        </div>
-        <div class="flex space-x-2 overflow-x-auto p-2 bg-gray-50">${thumbs}</div>
-        <div class="p-3 flex-1 flex flex-col gap-1">
-          <h3 class="font-medium text-sm line-clamp-1">${d.desc}</h3>
-          <p class="text-emerald-600 font-semibold">${d.price}</p>
-          <button onclick="window.open('https://wa.me/${STORE_NUM}?text='+encodeURIComponent('${d.desc} – ${d.price}'),'_blank')" class="mt-auto py-1 rounded bg-emerald-600 w-full text-white text-sm hover:bg-emerald-700">
-            <i class="fa-brands fa-whatsapp"></i> Buy
-          </button>
-          ${adminBtns}
-        </div>
-      </div>`);
+    auth.onAuthStateChanged(user => {
+      if (!user) {
+        adminBtn.classList.add("hidden");
+        signOutBtn.classList.add("hidden");
+        userBadge.classList.add("hidden");
+        return;
+      }
+      userPhoneEl.textContent = user.phoneNumber || user.email || "Admin";
+      userBadge.classList.remove("hidden");
+      signOutBtn.classList.remove("hidden");
+      if (user.uid === ADMIN_UID) {
+        adminBtn.classList.remove("hidden");
+      }
     });
 
-    // admin listeners
-    if(auth.currentUser){
-      grid.querySelectorAll(".toggleStatus").forEach(btn=>{
-        btn.onclick=async e=>{
-          const id=e.currentTarget.dataset.id, cur=e.currentTarget.dataset.status;
-          const next=cur==="available"?"reserved":cur==="reserved"?"sold":"available";
-          await db.collection("Ads").doc(id).update({status:next});
-        };
-      });
-      grid.querySelectorAll(".deleteAd").forEach(btn=>{
-        btn.onclick=async e=>{
-          if(!confirm("Delete this ad forever?"))return;
-          await db.collection("Ads").doc(e.currentTarget.dataset.id).delete();
-        };
-      });
-    }
-  });
+    // Sign in flow (auto-prompt) – admin only
+    adminBtn.onclick = () => {
+      if (!auth.currentUser) {
+        auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+      } else {
+        fileInput.click();
+      }
+    };
+    signOutBtn.onclick = () => auth.signOut();
 
-  /* ───────── viewer ───────── */
-  function viewer(arr,i=0){
-    if(!arr[i]){alert("Image unavailable");return;}
-    const html=`<div id="viewer" class="fixed inset-0 bg-black/90 z-[70] grid">
-        <img src="${arr[i]}" class="m-auto max-h-[90%] max-w-[90%]"/>
-        <button onclick="this.parentNode.remove()" class="absolute top-2 right-4 text-white text-3xl">✕</button>
-        <button class="viewer-btn left"><i class="fa-solid fa-chevron-left"></i></button>
-        <button class="viewer-btn right"><i class="fa-solid fa-chevron-right"></i></button>
-      </div>`;
-    document.body.insertAdjacentHTML("beforeend",html);
-    const v=document.getElementById("viewer"),img=v.querySelector("img");
-    v.querySelector(".viewer-btn.left").onclick=()=>{i=(i-1+arr.length)%arr.length;img.src=arr[i];};
-    v.querySelector(".viewer-btn.right").onclick=()=>{i=(i+1)%arr.length;img.src=arr[i];};
+    // ─── UPLOAD HANDLER ─────────────────────────────────────────────────────
+    fileInput.onchange = e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const ref = storage.ref().child(`products/${Date.now()}_${file.name}`);
+      const task = ref.put(file);
+      progressElt.textContent = "Uploading: 0%";
+      progressElt.classList.remove("hidden");
+
+      task.on("state_changed",
+        snap => {
+          const pct = Math.floor(snap.bytesTransferred / snap.totalBytes * 100);
+          progressElt.textContent = `Uploading: ${pct}%`;
+        },
+        err => {
+          alert("Upload failed: " + err.message);
+          progressElt.classList.add("hidden");
+        },
+
+async () => {                    // success
+  const url = await task.snapshot.ref.getDownloadURL();
+
+  // newest ad (by timestamp)
+  const doc = await db.collection("Ads")
+                      .orderBy("ts","desc").limit(1).get()
+                      .then(s => s.docs[0]);
+
+  if (!doc) {
+    alert("No ad found – create one first.");
+  } else {
+    const data = doc.data();
+    await doc.ref.update({
+      images : firebase.firestore.FieldValue.arrayUnion(url),
+      img    : data.img || url        // if main img empty, set it
+    });
+    alert("Photo added!");
   }
 
-  /* ───────── quick-message ───────── */
-  (()=>{const today=()=>new Date().toISOString().split("T")[0];
-    if(localStorage.lastQuickMsgDate===today()){
-      sendQuick.disabled=true;sendQuick.classList.add("opacity-50","cursor-not-allowed");limitNotice.classList.remove("hidden");
-    }
-    sendQuick.onclick=()=>{
-      if(localStorage.lastQuickMsgDate===today()){limitNotice.classList.remove("hidden");return;}
-      const txt=encodeURIComponent(quickMsg.value.trim()||"Please Remember To Send My Free Data");
-      window.open(`https://wa.me/${STORE_NUM}?text=${txt}`,"_blank");
-      localStorage.lastQuickMsgDate=today();
-      sendQuick.disabled=true;sendQuick.classList.add("opacity-50","cursor-not-allowed");limitNotice.classList.remove("hidden");
-    };
-  })();
+  uploadProgress.classList.add("hidden");
+  adminFileInput.value = "";
+  
+}
 
-  /* ───────── admin upload ───────── */
-  adminUploadBtn.onclick=()=>adminFileInput.click();
-  adminFileInput.onchange=e=>{
-    const file=e.target.files[0];if(!file)return;
-    uploadProgress.classList.remove("hidden");
-    const task=storage.ref(`products/${Date.now()}_${file.name}`).put(file);
-    task.on("state_changed",
-      s=>uploadProgress.textContent=`Uploading: ${Math.floor(s.bytesTransferred/s.totalBytes*100)}%`,
-      err=>{alert("Upload failed: "+err.message);uploadProgress.classList.add("hidden");},
-      async()=>{
-        const url=await task.snapshot.ref.getDownloadURL();
-        const q=await db.collection("Ads").orderBy("ts","desc").limit(1).get();
-        if(q.empty)alert("No ad to attach to");
-        else await q.docs[0].ref.update({images:firebase.firestore.FieldValue.arrayUnion(url)});
-        alert("Photo attached!");uploadProgress.classList.add("hidden");e.target.value="";
+);
+    // ─── COUNTERS ────────────────────────────────────────────────────────────
+    const sharesFill = document.getElementById("sharesFill");
+    const dataFill   = document.getElementById("dataFill");
+    const sharesText = document.getElementById("sharesText");
+    const dataText   = document.getElementById("dataText");
+
+    function updateCounters(count) {
+      const max = 40;
+      const pct = Math.min(100, Math.round(count/max*100));
+      sharesFill.style.width = pct + "%";
+      sharesText.textContent = `${count} / ${max}`;
+      const mb = count * 1; // 1MB per share
+      const mbPct = Math.min(100, Math.round(mb/max*100));
+      dataFill.style.width = mbPct + "%";
+      dataText.textContent = `${mb} MB`;
+    }
+
+    db.collection("invites")
+      .onSnapshot(snap => updateCounters(snap.size));
+
+    // ─── SHARE BUTTONS ───────────────────────────────────────────────────────
+    const inviteModal  = document.getElementById("inviteModal");
+    const pickContact  = document.getElementById("pickContact");
+    const recInput     = document.getElementById("recipientInput");
+    const cancelInvite = document.getElementById("cancelInvite");
+    const confirmInv   = document.getElementById("confirmInvite");
+
+    pickContact.onclick = async ()=> {
+      if (!navigator.contacts) return alert("No Contact Picker");
+      try {
+        const [c] = await navigator.contacts.select(["tel"], {multiple:false});
+        recInput.value = c.tel[0].replace(/\D/g, "");
+      } catch {}
+    };
+    cancelInvite.onclick = ()=> inviteModal.classList.add("hidden");
+
+    confirmInv.onclick = async () => {
+      const num = recInput.value.trim();
+      const res = await fetch(BASE + "/create-invite", {
+        method: "POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ sharer: auth.currentUser?.uid||"ANON", ref: num })
       });
-  };
+      if (!res.ok) {
+        return alert(await res.text());
+      }
+      inviteModal.classList.add("hidden");
+      openWhatsApp(`Please join via this link: ${BASE}/invite/${num}`);
+    };
+
+    document.getElementById("btnWhatsApp").onclick = ()=> inviteModal.classList.remove("hidden");
+    document.getElementById("btnFacebook").onclick = ()=> {
+      window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(BASE)}`, "_blank");
+    };
+    document.getElementById("btnInstagram").onclick = ()=> {
+      prompt("Copy & share this link on Instagram:", BASE);
+    };
+
+    function openWhatsApp(text) {
+      const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+      window.open(url, "_blank");
+    }
+
+    // ─── PRODUCT VIEWER ─────────────────────────────────────────────────────
+    let products = [], idx = 0;
+    const imgEl  = document.getElementById("prodImage");
+
+    async function loadProducts(){
+      const snap = await db.collection("Ads").orderBy("ts","desc").get();
+      products = snap.docs.map(d=>d.data().url);
+      idx = 0;
+      showProd();
+    }
+    function showProd(){
+      imgEl.src = products[idx] || "";
+    }
+    document.getElementById("prevProd").onclick = ()=>{
+      if (products.length===0) return;
+      idx = (idx - 1 + products.length) % products.length;
+      showProd();
+    };
+    document.getElementById("nextProd").onclick = ()=>{
+      if (products.length===0) return;
+      idx = (idx + 1) % products.length;
+      showProd();
+    };
+
+    // ─── INITIALIZE ─────────────────────────────────────────────────────────
+    loadProducts();
   </script>
 </body>
 </html>

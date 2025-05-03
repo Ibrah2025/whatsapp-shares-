@@ -1,13 +1,11 @@
 {
   "functions": { "source": "functions" },
-
   "hosting": {
     "public": "public",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-    "rewrites": [
-      { "source": "/create-invite", "function": "api" },
-      { "source": "/verify-invite",  "function": "api" },
-      { "source": "**", "destination": "/index.html" }
-    ]
+    "rewrites": [{"source":"/invite/**","destination":"/invite.html"}]
+  },
+  "storage": {
+    "rules": "storage.rules"
   }
 }

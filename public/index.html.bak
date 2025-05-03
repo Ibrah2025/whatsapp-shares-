@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>New Products • Order via WhatsApp</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <script defer src="https://kit.fontawesome.com/a2e0e9e1b7.js" crossorigin="anonymous"></script>
+
+  <style>
+    .share-track{background:#e5e7eb}
+    .share-fill{background:linear-gradient(90deg,#e5e7eb 0%,#059669 100%)}
+    .viewer-btn{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.5);border:none;padding:.5rem;border-radius:9999px;cursor:pointer}
+    .viewer-btn.left{left:1rem}.viewer-btn.right{right:1rem}.viewer-btn i{font-size:1.5rem;color:#fff}
+    @keyframes breathe{0%,100%{box-shadow:0 0 4px rgba(255,255,255,.4)}50%{box-shadow:0 0 12px rgba(255,255,255,.8)}}
+    #shareBtns button{animation:breathe 3s ease-in-out infinite}
+    @keyframes rotate-lights{to{transform:rotate(360deg)}}
+    @keyframes blink-lights{0%,50%,100%{opacity:1}25%,75%{opacity:.5}}
+    #messagePanel{position:relative;z-index:1;width:70%;margin:2rem auto;padding:1.5rem;border-radius:1rem}
+    #messagePanel::before{content:"";position:absolute;inset:0;border-radius:inherit;background:#fff;box-shadow:0 4px 12px rgba(0,0,0,.08);z-index:-2}
+    #messagePanel::after{content:"";position:absolute;top:-6px;left:-6px;right:-6px;bottom:-6px;border-radius:inherit;
+      background:radial-gradient(circle,#A8E6CF 6px,transparent 6px),
+                 radial-gradient(circle,#FFD3B6 6px,transparent 6px),
+                 radial-gradient(circle,#FF8C94 6px,transparent 6px),
+                 radial-gradient(circle,#E1BEE7 6px,transparent 6px),
+                 radial-gradient(circle,#AEC6CF 6px,transparent 6px),
+                 radial-gradient(circle,#A8E6CF 6px,transparent 6px),
+                 radial-gradient(circle,#FFD3B6 6px,transparent 6px),
+                 radial-gradient(circle,#FF8C94 6px,transparent 6px);
+      background-position:0% 0%,50% 0%,100% 0%,100% 50%,100% 100%,50% 100%,0% 100%,0% 50%;
+      background-repeat:no-repeat;
+      transform-origin:center;
+      animation:rotate-lights 15s linear infinite,blink-lights 3s ease-in-out infinite;z-index:-1}
+  </style>
+</head>
+
+<body class="min-h-screen bg-gradient-to-br from-emerald-200 to-cyan-200">
+
+<!-- ───────── NAV BAR ───────── -->
+<header class="bg-white/80 backdrop-blur sticky top-0 z-40 flex items-center justify-between px-4 py-2 shadow">
+  <h1 class="text-lg font-bold flex items-center gap-2">
+    <i class="fa-solid fa-cart-shopping text-emerald-600"></i>
+    <span id="userBadge" class="ml-2 text-lg font-semibold hidden">
+      <i class="fa-solid fa-user"></i> <span id="userPhone"></span>
+    </span>
+  </h1>
+
+  <div class="flex items-center gap-4">
+    <button id="adminUploadBtn" class="hidden text-sm text-blue-600 hover:underline">Upload Photo</button>
+    <input  id="adminFileInput" type="file" accept="image/*" class="hidden">
+    <span   id="uploadProgress" class="text-sm text-gray-700 hidden">Uploading: 0%</span>
+    <button id="signOut" class="hidden text-sm text-red-500 hover:underline">Sign out</button>
+  </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-4">
+
+  <!-- SHARE COUNTERS -->
+  <section class="my-6">
+    <div class="flex items-center justify-between mb-1">
+      <span class="text-sm font-medium">App shares</span>
+      <span id="shareCount" class="text-sm font-semibold">0 / 40</span>
+    </div>
+    <div class="h-4 rounded share-track"><div id="shareFill" class="h-full rounded share-fill w-0"></div></div>
+
+    <div class="flex items-center justify-between mt-4 mb-1">
+      <span class="text-sm font-medium">Free Data</span>
+      <span id="freeDataCount" class="text-sm font-semibold">0 MB</span>
+    </div>
+    <div class="h-4 rounded share-track"><div id="freeDataFill" class="h-full rounded share-fill w-0"></div></div>
+  </section>
+
+  <!-- SHARE BUTTONS -->
+  <section id="shareBtns" class="flex flex-wrap gap-3 mb-8">
+    <button data-chan="whatsapp"  class="flex-1 sm:flex-none px-3 py-2 rounded bg-green-600 text-white hover:bg-green-700 flex items-center gap-2">
+      <i class="fa-brands fa-whatsapp"></i> WhatsApp
+    </button>
+    <button data-chan="facebook"  class="flex-1 sm:flex-none px-3 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 flex items-center gap-2">
+      <i class="fa-brands fa-facebook-f"></i> Facebook
+    </button>
+    <button data-chan="instagram" class="flex-1 sm:flex-none px-3 py-2 rounded bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 text-white hover:opacity-90 flex items-center gap-2">
+      <i class="fa-brands fa-instagram"></i> Instagram
+    </button>
+  </section>
+
+  <!-- PRODUCTS GRID -->
+  <h2 class="text-xl font-semibold mb-4 flex items-center gap-2">
+    <i class="fa-solid fa-box-open text-emerald-600"></i> New Products
+  </h2>
+  <div id="grid" class="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5"></div>
+
+  <!-- QUICK MESSAGE PANEL -->
+  <section id="messagePanel">
+    <h3 class="text-lg font-bold mb-3 flex items-center gap-2">
+      <i class="fa-regular fa-comment-dots text-emerald-600"></i> Send quick message
+    </h3>
+    <textarea id="quickMsg" rows="4" class="block w-full rounded-lg border-gray-300 shadow-sm focus:ring-emerald-500 focus:border-emerald-500 p-3">Please Remember To Send My Free Data</textarea>
+    <p id="monthlyNotice" class="mt-2 mb-4 text-xs uppercase font-semibold tracking-wide text-indigo-600">
+      Note: This message may only be sent on the 1st day of every month.
+    </p>
+    <button id="sendQuick" class="w-full py-3 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700">
+      <i class="fa-brands fa-whatsapp"></i> Send via WhatsApp
+    </button>
+    <p id="limitNotice" class="mt-2 text-sm text-gray-600 italic hidden">
+      You may only send one quick message per day. Thank you for understanding!
+    </p>
+  </section>
+</main>
+
+<!-- INVITE MODAL -->
+<div id="inviteModal" class="fixed inset-0 bg-black/50 flex items-center justify-center hidden z-50">
+  <div class="bg-white p-6 rounded-lg w-80">
+    <h2 class="text-lg font-semibold mb-4">
+      Enter <span class="font-bold">Mobile&nbsp;Number</span>
+      to share the app with&nbsp;and&nbsp;get&nbsp;Free&nbsp;Data
+    </h2>
+
+    <div class="relative w-full mb-4">
+      <input id="recipientInput" type="tel" placeholder="080 / 070 / 090"
+             class="w-full p-2 pr-10 border rounded">
+      <button id="pickContact"
+              title="Pick from phone book"
+              class="absolute right-2 top-1/2 -translate-y-1/2
+                     text-gray-500 hover:text-emerald-600">
+        <i class="fa-solid fa-address-book"></i>
+      </button>
+    </div>
+    
+    <!-- Error message for duplicate number -->
+    <p id="duplicateError" class="text-red-600 text-sm mb-4 hidden">
+      You have already shared with this number. Please use a different number.
+    </p>
+
+    <div class="flex justify-end gap-2">
+      <button id="cancelInvite"  class="px-4 py-2">Cancel</button>
+      <button id="confirmInvite" class="px-4 py-2 bg-emerald-600 text-white rounded">Share</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOGIN MODAL -->
+<div id="authGate" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 hidden">
+  <div class="bg-white rounded-2xl p-6 w-full max-w-xs space-y-4">
+    <h2 class="text-xl font-bold text-center">🔒 Log in</h2>
+    <input id="phoneInput" type="tel" placeholder="Phone number" class="w-full rounded-lg border p-2">
+    <input id="pinInput" type="password" maxlength="6" pattern="\d{6}" placeholder="PIN (6 digits)" class="w-full rounded-lg border p-2">
+    <label class="inline-flex items-center gap-2 text-sm">
+      <input type="checkbox" id="remember" class="rounded"> Remember me
+    </label>
+    <button id="loginBtn" class="w-full py-2 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700">Log in</button>
+    <p id="authError" class="text-center text-sm text-red-600 hidden"></p>
+  </div>
+</div>
+
+<!-- FIREBASE SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-storage-compat.js"></script>
+
+<script>
+/* Firebase init */
+firebase.initializeApp({
+  apiKey:"AIzaSyD4MRqr2ZtobJRjmiyFDjEX_rQC0uq5kXE",
+  authDomain:"whatsapp-sender-1745259132.firebaseapp.com",
+  projectId:"whatsapp-sender-1745259132",
+  storageBucket:"whatsapp-sender-1745259132.appspot.com",
+  messagingSenderId:"416889662149",
+  appId:"1:416889662149:web:62ac6ac4b12a4779b61eac"
+});
+const auth=firebase.auth(), db=firebase.firestore(), storage=firebase.storage();
+const BASE="https://whatsapp-sender-1745259132.web.app";
+
+/* Regex for +234703… or 0703… */
+const NG_CORE_MOBILE =
+  /^(?:\+234|0)(?:703|704|706|803|806|810|813|814|816|819|903|906|913|916|701|708|802|808|812|901|902|904|907|912|705|805|807|811|815|905|915|809|817|818|908|909)\d{7}$/;
+
+/* Contact picker */
+pickContact.onclick = async () => {
+  if(!('contacts' in navigator) || !('select' in navigator.contacts)){
+    alert("Your browser can't open contacts — please type the number."); return;
+  }
+  try{
+    const [c] = await navigator.contacts.select(
+      [{name:"tel",allow:["tel"]}],{multiple:false});
+    if(!c || !c.tel?.length) return;
+    let n=c.tel[0].replace(/[\s\-()]/g,"");
+    if(n.startsWith("+234")) n="0"+n.slice(4);
+    recipientInput.value=n; recipientInput.focus();
+    // Clear any previous error message when picking a new contact
+    duplicateError.classList.add("hidden");
+  }catch(e){console.error(e);}
+};
+
+/* Auth */
+loginBtn.onclick = async()=>{
+  const phone=phoneInput.value.trim(), pin=pinInput.value.trim();
+  if(!/^\d{9,15}$/.test(phone)||!/^\d{6}$/.test(pin)){
+    authError.textContent="Enter valid phone + 6-digit PIN."; authError.classList.remove("hidden"); return;
+  }
+  if(remember.checked){localStorage.phone=phone;localStorage.pin=pin;}
+  else{localStorage.removeItem("phone");localStorage.removeItem("pin");}
+  try{
+    await auth.signInWithEmailAndPassword(`${phone.replace(/\D/g,"")}@example.phone`,pin);
+  }catch(e){
+    if(e.code==="auth/user-not-found"||e.code==="auth/invalid-credential"){
+      await auth.createUserWithEmailAndPassword(`${phone.replace(/\D/g,"")}@example.phone`,pin);
+    }else{authError.textContent="Error: "+e.message; authError.classList.remove("hidden");}
+  }
+};
+auth.onAuthStateChanged(u=>{
+  authGate.classList.toggle("hidden",!!u);
+  userBadge.classList.toggle("hidden",!u);
+  if(u) userPhone.textContent=localStorage.phone||u.email.replace("@example.phone","");
+  const ADMINS=["cSHfpU8p4UPS7Q1zabWQY7FUeqH2"];
+  adminUploadBtn.classList.toggle("hidden",!(u&&ADMINS.includes(u.uid)));
+  signOut.classList.toggle("hidden",!u);
+  
+  // Once logged in, fetch user share data
+  if(u) fetchUserShareData();
+});
+signOut.onclick=()=>auth.signOut();
+
+/* Counters */
+const STORE_NUM="4915215688608"; const SHARE_LIMIT=40; const DATA_MB_PER_SHARE=25;
+let shareCount = 0;
+let shareArr = JSON.parse(localStorage.shareCount||"[]");
+let sharedNumbers = []; // Keep track of numbers shared by this user
+
+// Fetch user share data from Firestore (server source of truth)
+async function fetchUserShareData() {
+  if (!auth.currentUser) return;
+  
+  try {
+    // Get user's phone to use as sharer ID
+    const userPhone = localStorage.phone || auth.currentUser.email.replace("@example.phone","");
+    
+    // Get share data from Firestore
+    const doc = await db.collection("userShares").doc(userPhone).get();
+    
+    if (doc.exists) {
+      const data = doc.data();
+      // Update share count based on server data
+      shareCount = data.count || 0;
+      // Update shared numbers array
+      sharedNumbers = data.sharedNumbers || [];
+      
+      // Update local storage with server count
+      // Note: This is only for UI display; the server remains the source of truth
+      shareArr = [];
+      for (let i = 0; i < shareCount; i++) {
+        shareArr.push(Date.now() - (i * 86400000)); // Dummy timestamps
+      }
+      localStorage.shareCount = JSON.stringify(shareArr);
+      
+      // Update UI
+      renderCounters();
+    } else {
+      // No server data yet, keep using local storage temporarily
+      shareCount = shareArr.length;
+    }
+  } catch (error) {
+    console.error("Error fetching user share data:", error);
+    // Fallback to localStorage count
+    shareCount = shareArr.length;
+  }
+}
+
+function renderCounters(){
+  const shares=Math.min(shareCount, SHARE_LIMIT);
+  shareCount.textContent=`${shares} / ${SHARE_LIMIT}`;
+  shareFill.style.width=(shares/SHARE_LIMIT*100)+"%";
+  const mb=shares*DATA_MB_PER_SHARE;
+  freeDataCount.textContent=mb>=1000?(mb/1000).toFixed(1).replace(/\.0$/,"")+" GB":mb+" MB";
+  freeDataFill.style.width=Math.min(mb/1000,1)*100+"%";
+}
+renderCounters();
+
+/* Share helpers */
+function registerShare(){
+  // Update local UI first for responsiveness
+  shareArr.push(Date.now());
+  localStorage.shareCount=JSON.stringify(shareArr);
+  shareCount++;
+  renderCounters();
+}
+
+function openSocial(chan){
+  const url=encodeURIComponent(location.href);
+  const l=chan==="facebook"?`https://www.facebook.com/sharer/sharer.php?u=${url}`:
+          chan==="instagram"?`https://www.instagram.com/?url=${url}`:"#";
+  window.open(l,"_blank");registerShare();
+}
+
+/* Invite modal flow */
+function openInviteModal(){
+  if(!auth.currentUser){
+    alert("Log in first!");
+    return;
+  }
+  inviteModal.classList.remove("hidden");
+  duplicateError.classList.add("hidden"); // Hide any previous error message
+  recipientInput.value = ""; // Clear previous input
+}
+
+shareBtns.onclick=e=>{const b=e.target.closest("button[data-chan]");if(!b)return;b.dataset.chan==="whatsapp"?openInviteModal():openSocial(b.dataset.chan);};
+cancelInvite.onclick=()=>inviteModal.classList.add("hidden");
+
+// Reset error when user types in the input field
+recipientInput.oninput = () => {
+  duplicateError.classList.add("hidden");
+};
+
+confirmInvite.onclick=async()=>{
+  const ref=recipientInput.value.trim();
+  
+  // Check if it's a valid phone number
+  if(!NG_CORE_MOBILE.test(ref)){
+    alert("Enter a valid Nigerian mobile (080… or +234803…)");
+    return;
+  }
+  
+  // Get user's phone to use as sharer ID
+  const sharer = localStorage.phone || auth.currentUser.email.replace("@example.phone","");
+  
+  // Call the server endpoint to create invite
+  try {
+    const response = await fetch("/create-invite", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sharer, ref })
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      
+      // Handle duplicate share error
+      if (response.status === 409) {
+        duplicateError.classList.remove("hidden");
+        return;
+      }
+      
+      alert(`Error: ${errorText}`);
+      return;
+    }
+    
+    // Close modal and open WhatsApp
+    inviteModal.classList.add("hidden");
+    window.open(`https://wa.me/?text=${encodeURIComponent(BASE+"/invite?code="+encodeURIComponent(ref))}`,"_blank");
+    
+    // Update UI counters
+    registerShare();
+    
+  } catch (error) {
+    alert("Network error. Please try again.");
+    console.error(error);
+  }
+};
+
+/* Firestore – products grid */
+db.collection("Ads").orderBy("ts","desc").limit(10).onSnapshot(snap=>{
+  grid.innerHTML="";
+  snap.forEach(doc=>{
+    const d=doc.data(),arr=d.images||[d.img],main=arr[arr.length-1];
+    const thumbs=arr.slice(-5).map((u,i)=>`<img src="${u}" class="h-16 w-16 object-cover rounded cursor-pointer" onclick='viewer(${JSON.stringify(arr)},${i})'>`).join("");
+    grid.insertAdjacentHTML("beforeend",`
+      <div class="bg-white rounded-xl shadow hover:shadow-lg transition flex flex-col overflow-hidden">
+        <div class="aspect-square overflow-hidden cursor-pointer" onclick='viewer(${JSON.stringify(arr)},${arr.length-1})'>
+          <img src="${main}" class="w-full h-full object-cover">
+        </div>
+        <div class="flex space-x-2 overflow-x-auto p-2 bg-gray-50">${thumbs}</div>
+        <div class="p-3 flex-1 flex flex-col gap-1">
+          <h3 class="font-medium text-sm line-clamp-1">${d.desc}</h3>
+          <p class="text-emerald-600 font-semibold">${d.price}</p>
+          <button onclick="window.open('https://wa.me/${STORE_NUM}?text='+encodeURIComponent('${d.desc} – ${d.price}'),'_blank')" class="mt-auto py-1 rounded bg-emerald-600 w-full text-white text-sm hover:bg-emerald-700">
+            <i class="fa-brands fa-whatsapp"></i> Buy
+          </button>
+        </div>
+      </div>`);
+  });
+});
+
+/* Viewer */
+function viewer(arr,i=0){
+  if(!arr[i]){alert("Image unavailable");return;}
+  const html=`<div id="viewer" class="fixed inset-0 bg-black/90 z-[70] grid">
+      <img src="${arr[i]}" class="m-auto max-h-[90%] max-w-[90%]"/>
+      <button onclick="this.parentNode.remove()" class="absolute top-2 right-4 text-white text-3xl">✕</button>
+      <button class="viewer-btn left"><i class="fa-solid fa-chevron-left"></i></button>
+      <button class="viewer-btn right"><i class="fa-solid fa-chevron-right"></i></button>
+    </div>`;
+  document.body.insertAdjacentHTML("beforeend",html);
+  const v=document.getElementById("viewer"),img=v.querySelector("img");
+  v.querySelector(".viewer-btn.left").onclick=()=>{i=(i-1+arr.length)%arr.length;img.src=arr[i];};
+  v.querySelector(".viewer-btn.right").onclick=()=>{i=(i+1)%arr.length;img.src=arr[i];};
+}
+
+/* Quick-message one-a-day */
+(()=>{
+  const today=()=>new Date().toISOString().split("T")[0];
+  if(localStorage.lastQuickMsgDate===today()){
+    sendQuick.disabled=true;sendQuick.classList.add("opacity-50","cursor-not-allowed");limitNotice.classList.remove("hidden");
+  }
+  sendQuick.onclick=()=>{
+    if(localStorage.lastQuickMsgDate===today()){limitNotice.classList.remove("hidden");return;}
+    const txt=encodeURIComponent(quickMsg.value.trim()||"Please Remember To Send My Free Data");
+    window.open(`https://wa.me/${STORE_NUM}?text=${txt}`,"_blank");
+    localStorage.lastQuickMsgDate=today();
+    sendQuick.disabled=true;sendQuick.classList.add("opacity-50","cursor-not-allowed");limitNotice.classList.remove("hidden");
+  };
+})();
+
+/* Admin upload flow */
+adminUploadBtn.onclick=()=>adminFileInput.click();
+adminFileInput.onchange=e=>{
+  const file=e.target.files[0];if(!file)return;
+  uploadProgress.classList.remove("hidden");
+  const task=storage.ref(`products/${Date.now()}_${file.name}`).put(file);
+  task.on("state_changed",
+    s=>uploadProgress.textContent=`Uploading: ${Math.floor(s.bytesTransferred/s.totalBytes*100)}%`,
+    err=>{alert("Upload failed: "+err.message);uploadProgress.classList.add("hidden");},
+    async()=>{
+      const url=await task.snapshot.ref.getDownloadURL();
+      const q=await db.collection("Ads").orderBy("ts","desc").limit(1).get();
+      if(q.empty)alert("No ad to attach to");
+      else await q.docs[0].ref.update({images:firebase.firestore.FieldValue.arrayUnion(url)});
+      alert("Photo attached!");
+      uploadProgress.classList.add("hidden");e.target.value="";
+    });
+};
+
+// Initialize with previously saved data from localStorage
+if(localStorage.phone && localStorage.pin){
+  phoneInput.value = localStorage.phone;
+  pinInput.value = localStorage.pin;
+  remember.checked = true;
+}
+</script>
+</body>
+</html>

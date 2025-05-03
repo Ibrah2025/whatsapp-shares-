@@ -1,0 +1,10 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow write: if request.auth != null && 
+        request.auth.uid in ['cSHfpU8p4UPS7Q1zabWQY7FUeqH2'];
+      allow read;
+    }
+  }
+}
